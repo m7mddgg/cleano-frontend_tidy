@@ -73,39 +73,32 @@ setInterval(loadNotifications, 2000); // تحديث الإشعارات كل ثا
 // 2. طلبات العميل
 // ==========================================
 document.getElementById('submit-request-btn').addEventListener('click', async () => {
-    // سحب الداتا من الحقول الجديدة
-    const placeTypeInput = document.getElementById('place-type');
-    const workerGenderInput = document.getElementById('worker-gender');
-    const serviceDateInput = document.getElementById('service-date');
-    const serviceTimeInput = document.getElementById('service-time');
-    
-    // التأكد إن العميل اختار الوقت والتاريخ
-    if (!serviceDateInput.value || !serviceTimeInput.value) {
-        alert('Please select date and time.');
+    // سحب الداتا بناءً على الـ IDs اللي في الـ HTML بتاعك بالظبط
+    const serviceInput = document.getElementById('service-type'); 
+    const addressInput = document.getElementById('service-address'); // اتعدلت هنا لـ service-address
+
+    if (!serviceInput || !addressInput) {
+        console.error("عنصر الـ HTML مش موجود، راجع الـ IDs");
+        return;
+    }
+
+    if (!serviceInput.value || !addressInput.value) {
+        alert('Please fill out all fields.');
         return;
     }
 
     const currentUser = localStorage.getItem('cleano_customer_name') || 'Guest';
 
-    // تحديد السعر بناءً على الموديل بتاع Tidy Flash
-    let calculatedPrice = 650; 
-    if (placeTypeInput.value === 'Villa') calculatedPrice = 1300; 
-    if (placeTypeInput.value === 'Office') calculatedPrice = 800; 
-
-    // تجميع اسم الخدمة عشان تظهر في الجدول بشكل شيك
-    const serviceName = `${placeTypeInput.value} (${workerGenderInput.value})`;
-
+    // تجهيز الطلب
     const orderData = {
         customer: currentUser,
-        service: serviceName,
-        scheduleDate: serviceDateInput.value,
-        scheduleTime: serviceTimeInput.value,
-        price: calculatedPrice,
+        service: serviceInput.options[serviceInput.selectedIndex].text, 
+        address: addressInput.value,
         status: 'pending'
     };
 
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch('https://cleano-backend.vercel.app/api/orders', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
@@ -114,14 +107,15 @@ document.getElementById('submit-request-btn').addEventListener('click', async ()
         if (response.ok) {
             alert('Order placed successfully! A trusted worker will be assigned soon.');
             
-            // تفريغ الحقول بعد النجاح
-            serviceDateInput.value = '';
-            serviceTimeInput.value = '';
+            // تفريغ حقل العنوان بعد ما الطلب يتبعت
+            addressInput.value = '';
             
-            // تحديث جدول الطلبات لو الدالة موجودة
+            // تحديث جدول الطلبات في نفس الصفحة لو الدالة دي موجودة
             if (typeof fetchUserOrders === 'function') {
                 fetchUserOrders();
             }
+        } else {
+             console.error('Server error:', await response.text());
         }
     } catch (error) {
         console.error('Error adding order:', error);

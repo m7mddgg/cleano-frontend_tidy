@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Cleano Admin</title>
+    <link rel="icon" type="image/png" href="imammag.png">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2><i class="fa-solid fa-leaf"></i> Cleano Admin</h2>
+            </div>
+            <ul class="nav-links">
+                <!-- ضفنا data-target عشان نربط الزرار بالسكشن بتاعه -->
+                <li class="active" data-target="overview-section"><a href="#"><i class="fa-solid fa-house"></i>
+                        Overview</a></li>
+                <li data-target="orders-section"><a href="#"><i class="fa-solid fa-broom"></i> Orders</a></li>
+                <li data-target="workers-section"><a href="#"><i class="fa-solid fa-users"></i> Workers</a></li>
+                <li data-target="settings-section"><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+                <li data-target="messages-section"><a href="#"><i class="fa-solid fa-comments"></i> Messages</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar (ثابت في كل الصفحات) -->
+            <header class="topbar">
+                <!-- زرار فتح وقفل القائمة الجانبية -->
+                <button id="sidebar-toggle" class="toggle-btn">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search orders, workers...">
+                </div>
+                <div class="user-info">
+                    <!-- Notification Bell -->
+                    <div class="notification-container" style="position: relative;">
+                        <span class="notification" id="bell-icon" style="cursor: pointer; position: relative;">
+                            <i class="fa-regular fa-bell"></i>
+                            <!-- النقطة الحمراء بتاعت الإشعارات الجديدة -->
+                            <span id="notif-badge" class="badge" style="display: none;">0</span>
+                        </span>
+
+                        <!-- قائمة الإشعارات -->
+                        <div id="notif-dropdown" class="dropdown-menu"
+                            style="display: none; right: 0; width: 280px; padding: 15px; cursor: default;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
+                                <h4 style="font-size: 15px;">Notifications</h4>
+                                <button id="mark-read-btn"
+                                    style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;">Mark
+                                    all read</button>
+                            </div>
+                            <div id="notif-list" style="max-height: 250px; overflow-y: auto; font-size: 13px;">
+                                <!-- الإشعارات هتنزل هنا -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Profile Area with Dropdown -->
+                    <div class="admin-profile-container" style="position: relative;">
+                        <div class="admin-profile" id="admin-dropdown-toggle" style="cursor: pointer;">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=22c55e&color=fff" alt="Admin"
+                                id="topbar-avatar">
+                            <span id="display-admin-name">Admin</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 12px; margin-left: 5px;"></i>
+                        </div>
+
+                        <!-- القائمة المنسدلة (مخفية في البداية) -->
+                        <div id="admin-dropdown-menu" class="dropdown-menu" style="display: none;">
+                            <a href="#" id="open-profile-btn"><i class="fa-solid fa-user"></i> My Profile</a>
+                            <a href="index.html"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login Page</a>
+                            <a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ================= السكاشن الديناميكية ================= -->
+            <!-- 1. Overview Section -->
+            <section id="overview-section" class="page-section active-section">
+                <!-- كروت الإحصائيات -->
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <div class="stat-icon" style="background: #dcfce7; color: #22c55e;"><i class="fa-solid fa-clipboard-list"></i></div>
+                        <div class="stat-info">
+                            <h3>Total Orders</h3>
+                            <p id="total-orders">0</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon" style="background: #e0f2fe; color: #0ea5e9;"><i class="fa-solid fa-users-gear"></i></div>
+                        <div class="stat-info">
+                            <h3>Active Workers</h3>
+                            <p id="active-workers">0</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="stat-info">
+                            <h3>Total Revenue</h3>
+                            <p id="total-revenue">$ 0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- منطقة الرسومات البيانية (Charts Grid) -->
+                <div class="dashboard-grid">
+                    <!-- المخطط الدائري -->
+                    <div class="card chart-card">
+                        <h3 class="chart-title">Orders Status Breakdown</h3>
+                        <div class="canvas-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- المخطط الشريطي -->
+                    <div class="card chart-card">
+                        <h3 class="chart-title">Top Requested Services</h3>
+                        <div class="canvas-container">
+                            <canvas id="serviceChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- المخطط الخطي -->
+                    <div class="card chart-card full-width-chart">
+                        <h3 class="chart-title">Revenue Overview (Last 7 Days)</h3>
+                        <div class="canvas-container" style="height: 300px;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Orders Section (قسم الطلبات) -->
+            <section id="orders-section" class="page-section" style="display: none;">
+                <div class="table-container card">
+                    <div class="table-header">
+                        <h2><i class="fa-solid fa-list-check"></i> Manage All Orders</h2>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <!-- فلتر الطلبات -->
+                            <select id="status-filter" class="form-control" style="width: 150px;">
+                                <option value="all">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                            </select>
+
+                            <!-- زرار التصدير للإكسيل -->
+                            <button id="export-orders-btn" class="primary-btn" style="background: #3b82f6;">
+                                <i class="fa-solid fa-file-csv"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Service</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Worker</th>
+                                <th>Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-orders-table-body">
+                            <!-- Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. Workers Section (قسم العمال) -->
+            <section id="workers-section" class="page-section" style="display: none;">
+                <div class="table-container card">
+                    <div class="table-header">
+                        <h2>Workers Directory</h2>
+                        <button id="open-worker-modal-btn" class="primary-btn"><i class="fa-solid fa-user-plus"></i> Add
+                            New Worker</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Worker Name</th>
+                                <th>Security Check</th> 
+                                <th>Role</th> 
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workers-table-body">
+                            <!-- Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. Settings Section (الإعدادات) -->
+            <!-- 4. Settings Section (الإعدادات) -->
+            <section id="settings-section" class="page-section" style="display: none;">
+                <div class="card">
+                    <h2><i class="fa-solid fa-sliders"></i> System Settings</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 25px;">Manage your application preferences and
+                        configurations.</p>
+
+                    <div class="settings-grid">
+                        <!-- Appearance (Dark Mode) -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4><i class="fa-solid fa-moon"></i> Dark Mode</h4>
+                                <p>Switch between light and dark themes.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="theme-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- Language -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4><i class="fa-solid fa-globe"></i> Language</h4>
+                                <p>Choose your preferred dashboard language.</p>
+                            </div>
+                            <select id="language-select" class="form-control">
+                                <option value="en">English (US)</option>
+                                <option value="ar">العربية (Arabic)</option>
+                            </select>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4><i class="fa-solid fa-bell"></i> Notifications</h4>
+                                <p>Enable or disable system alerts.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- Admin Profile -->
+                        <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 15px;">
+                            <div class="setting-info">
+                                <h4><i class="fa-solid fa-user-shield"></i> Admin Details</h4>
+                                <p>Update your display name.</p>
+                            </div>
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <input type="text" id="admin-name-input" class="form-control" placeholder="Admin Name"
+                                    style="flex: 1;">
+                                <button id="save-admin-btn" class="primary-btn">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section id="messages-section" class="page-section" style="display: none;">
+                <div class="card" style="display: flex; flex-direction: row; height: 500px; padding: 0; overflow: hidden;">
+                    
+                    <div style="width: 30%; border-right: 1px solid var(--border); background: var(--bg-color); overflow-y: auto; padding: 15px;">
+                        <h3 style="margin-bottom: 15px; color: var(--text-main);">Customers</h3>
+                        <ul id="chat-users-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                            </ul>
+                    </div>
+                    
+                    <div style="flex: 1; display: flex; flex-direction: column; background: var(--card-bg);">
+                        <div style="padding: 15px; border-bottom: 1px solid var(--border); background: var(--bg-color);">
+                            <h3 id="current-chat-user" style="margin: 0; color: var(--text-main);">Select a customer to chat</h3>
+                        </div>
+                        
+                        <div id="admin-chat-messages" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-color);">
+                            </div>
+                        
+                        <div style="padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--card-bg);">
+                            <input type="text" id="admin-chat-input" placeholder="Type your reply..." style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--text-main); outline: none;" disabled>
+                            <button id="admin-send-btn" onclick="sendAdminMessage()" style="background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;" disabled><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- نافذة إضافة طلب جديد (Modal) -->
+    <div id="add-order-modal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Add Manual Order</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Customer Name</label>
+                <input type="text" id="manual-customer-name" class="form-control" placeholder="Enter customer name"
+                    style="width: 100%;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Service Type</label>
+                <select id="manual-service-type" class="form-control" style="width: 100%;">
+                    <option value="Basic Cleaning">Basic Cleaning</option>
+                    <option value="Deep Cleaning">Deep Cleaning</option>
+                    <option value="Garbage Pickup">Garbage Pickup</option>
+                </select>
+            </div>
+
+            <button id="submit-manual-order" class="primary-btn" style="width: 100%;">Create Order</button>
+        </div>
+    </div>
+    <!-- نافذة إضافة عامل جديد (Modal) -->
+    <div id="add-worker-modal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Add New Worker</h2>
+                <span id="close-worker-modal" class="close-modal">&times;</span>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Worker Name</label>
+                <input type="text" id="manual-worker-name" class="form-control" placeholder="Enter worker full name"
+                    style="width: 100%;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Role</label>
+                <select id="manual-worker-role" class="form-control" style="width: 100%;">
+                    <option value="Cleaner">Cleaner (Apartments)</option>
+                    <option value="Garbage Collector">Garbage Collector</option>
+                    <option value="Supervisor">Supervisor</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <!-- خانة التقييم -->
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Rating (1 - 5)</label>
+                    <input type="number" id="manual-worker-rating" class="form-control" min="1" max="5" step="0.1"
+                        value="5.0" style="width: 100%;">
+                </div>
+                <!-- خانة الحالة -->
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Status</label>
+                    <select id="manual-worker-status" class="form-control" style="width: 100%;">
+                        <option value="Active">Active</option>
+                        <option value="On Leave">On Leave</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="submit-manual-worker" class="primary-btn" style="width: 100%;">Add Worker</button>
+        </div>
+    </div>
+    <!-- نافذة البروفايل (Profile Modal) -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>My Profile</h2>
+                <span class="close-profile-modal close-modal">&times;</span>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img id="profile-preview" src="https://ui-avatars.com/api/?name=Admin&background=22c55e&color=fff"
+                    style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 3px solid var(--primary);">
+                <div>
+                    <!-- زرار رفع الصورة -->
+                    <label for="profile-pic-upload"
+                        style="cursor: pointer; padding: 5px 15px; font-size: 13px; border: 1px solid var(--primary); color: var(--primary); border-radius: 5px; display: inline-block;">Upload
+                        Picture</label>
+                    <input type="file" id="profile-pic-upload" accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Full Name</label>
+                <input type="text" id="profile-name" class="form-control" style="width: 100%;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Phone Number</label>
+                <input type="text" id="profile-phone" class="form-control" placeholder="+20 10..." style="width: 100%;">
+            </div>
+
+            <button id="save-profile-btn" class="primary-btn" style="width: 100%;">Save Profile</button>
+        </div>
+    </div>
+    <!-- Chart.js for Advanced Graphics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="js/script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleano - Login & Register</title>
+    <link rel="icon" type="image/png" href="imammag.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #0f172a; color: #f8fafc; }
+        
+        .auth-container { background: #1e293b; width: 400px; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        .tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #334155; }
+        .tab { flex: 1; padding: 10px; cursor: pointer; color: #94a3b8; font-weight: 600; transition: 0.3s; }
+        .tab.active { color: #10b981; border-bottom: 2px solid #10b981; }
+        
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; color: #cbd5e1; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; outline: none; transition: 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: #10b981; }
+        
+        .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .auth-btn:hover { background: #059669; }
+        
+        .form-section { display: none; animation: fadeIn 0.4s; }
+        .form-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="logo"><i class="fa-solid fa-leaf"></i> Cleano Services</div>
+        
+        <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="switchTab('login')">Sign In</div>
+            <div class="tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</div>
+        </div>
+
+        <div id="form-login" class="form-section active">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="login-username" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="Enter your password">
+            </div>
+            <button class="auth-btn" onclick="login()">Login</button>
+        </div>
+
+        <div id="form-signup" class="form-section">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="signup-username" placeholder="Choose a username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="Create a password">
+            </div>
+            <div class="form-group">
+                <label>Account Type (Role)</label>
+                <select id="signup-role" onchange="toggleAdminSecret()">
+                    <option value="user">Customer (User)</option>
+                    <option value="admin">System Admin</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="admin-secret-group" style="display: none;">
+                <label style="color: #f59e0b;">Admin Secret Key <i class="fa-solid fa-lock"></i></label>
+                <input type="password" id="signup-admin-secret" placeholder="Enter secret code to become admin">
+            </div>
+            <button class="auth-btn" onclick="signup()">Create Account</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        // دالة التبديل بين الفورمتين
+        function switchTab(tab) {
+            document.getElementById('tab-login').classList.remove('active');
+            document.getElementById('tab-signup').classList.remove('active');
+            document.getElementById('form-login').classList.remove('active');
+            document.getElementById('form-signup').classList.remove('active');
+            
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`form-${tab}`).classList.add('active');
+        }
+
+        // دالة إظهار وإخفاء حقل الكود السري للأدمن
+        function toggleAdminSecret() {
+            const role = document.getElementById('signup-role').value;
+            const secretGroup = document.getElementById('admin-secret-group');
+            if (role === 'admin') {
+                secretGroup.style.display = 'block'; // نظهره لو اختار أدمن
+            } else {
+                secretGroup.style.display = 'none'; // نخفيه لو اختار عميل
+            }
+        }
+
+        // دالة التسجيل (Sign Up) المتأمنة
+        async function signup() {
+            const username = document.getElementById('signup-username').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const role = document.getElementById('signup-role').value;
+            const adminSecret = document.getElementById('signup-admin-secret').value; // نقرأ الكود السري
+
+            if(!username || !password) return alert("Please fill all fields!");
+
+            try {
+                const response = await fetch(`${API_URL}/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role, adminSecret }) // نبعته للسيرفر
+                });
+                const result = await response.json();
+                
+                if(result.success) {
+                    alert("Account created successfully! Please Sign In.");
+                    switchTab('login');
+                } else {
+                    alert(result.message); // هيطلع هنا رسالة الخطأ لو الكود السري غلط
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Server error, make sure backend is running.");
+            }
+        }
+
+        // دالة الدخول (Sign In)
+        async function login() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if(!username || !password) return alert("Please enter username and password!");
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const result = await response.json();
+
+                if(result.success) {
+                    // السيستم بيحفظ اسمك عشان يظهر في الداشبورد أو بوابة العميل
+                    if(result.role === 'admin') {
+                        localStorage.setItem('cleano_admin_name', result.username);
+                        window.location.href = 'admin.html';
+                    } else {
+                        localStorage.setItem('cleano_customer_name', result.username);
+                        window.location.href = 'user.html';
+                    }
+                } else {
+                    alert(result.message); // لو الباسورد غلط
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Server error, make sure backend is running.");
+            }
+        }
+    </script>
+</body>
+</html>

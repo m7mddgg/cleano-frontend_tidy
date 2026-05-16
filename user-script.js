@@ -432,7 +432,7 @@ function renderUserOrdersTable(dataToRender = userOrders) {
             <td>${order.service}</td>
             <td>${trackingHtml}</td>
             <td>${starsHtml}</td>
-            <td>₪ ${order.price}</td>
+            <td>₪ ${order.price||0}</td>
             <td>${actionBtn}</td>
         `;
         tbody.appendChild(tr);

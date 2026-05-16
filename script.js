@@ -163,11 +163,11 @@ function renderTable(dataToRender = orders) {
     dataToRender.forEach((order) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><strong>${order.orderId}</strong></td>
+            <td><strong>${order._orderId}</strong></td>
             <td>${order.service}</td>
             <td>${order.customer}</td>
             <td><span class="status ${order.status}">${order.status}</span></td>
-            <td>₪ ${order.price}</td>
+            <td>₪ ${order.price||0}</td>
             <td>
                 <button class="action-btn" onclick="deleteOrder('${order._id}')"><i class="fa-solid fa-trash"></i></button>
             </td>
@@ -193,11 +193,11 @@ function renderAllOrdersTable(dataToRender = orders) {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><strong>${order.orderId}</strong></td>
+            <td><strong>${order._orderId}</strong></td>
             <td>${order.service}</td>
             <td>${order.customer}</td>
             <td>
-                <select onchange="updateOrderStatus('${order._id}', this.value, '${order.customer}', '${order.orderId}')" class="form-control" style="padding: 5px; font-size: 13px; width: 110px; background: ${order.status === 'completed' ? '#dcfce7' : '#fef3c7'}; color: #1f2937; font-weight: 600; border: none;">
+                <select onchange="updateOrderStatus('${order._id}', this.value, '${order.customer}', '${order._orderId}')" class="form-control" style="padding: 5px; font-size: 13px; width: 110px; background: ${order.status === 'completed' ? '#dcfce7' : '#fef3c7'}; color: #1f2937; font-weight: 600; border: none;">
                     <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                     <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
                 </select>
@@ -207,7 +207,7 @@ function renderAllOrdersTable(dataToRender = orders) {
                     ${workersOptions}
                 </select>
             </td>
-            <td>₪ ${order.price}</td>
+            <td>₪ ${order.price||0}</td>
             <td>
                 <button class="action-btn" onclick="printInvoice('${order._id}')" style="background: #3b82f6; margin-right: 5px;" title="Print Invoice"><i class="fa-solid fa-print"></i></button>
                 <button class="action-btn" onclick="deleteOrder('${order._id}')" style="background: #ef4444;" title="Delete Order"><i class="fa-solid fa-trash"></i></button>

@@ -428,7 +428,7 @@ function renderUserOrdersTable(dataToRender = userOrders) {
         // --- 4. بناء صف الجدول بالترتيب السليم ---
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><strong>${order.orderId}</strong></td>
+            <td><strong>${order._orderId}</strong></td>
             <td>${order.service}</td>
             <td>${trackingHtml}</td>
             <td>${starsHtml}</td>

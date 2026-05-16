@@ -73,27 +73,27 @@ setInterval(loadNotifications, 2000); // تحديث الإشعارات كل ثا
 // 2. طلبات العميل
 // ==========================================
 document.getElementById('submit-request-btn').addEventListener('click', async () => {
-    // سحب الداتا بناءً على الـ IDs اللي في الـ HTML بتاعك بالظبط
     const serviceInput = document.getElementById('service-type'); 
-    const addressInput = document.getElementById('service-address'); // اتعدلت هنا لـ service-address
-
-    if (!serviceInput || !addressInput) {
-        console.error("عنصر الـ HTML مش موجود، راجع الـ IDs");
-        return;
-    }
+    const addressInput = document.getElementById('service-address'); 
 
     if (!serviceInput.value || !addressInput.value) {
         alert('Please fill out all fields.');
         return;
     }
 
+    // تحديد السعر كرقم صافي بناءً على اختيار العميل
+    let extractedPrice = 0;
+    if (serviceInput.value === 'Basic Cleaning') extractedPrice = 40;
+    else if (serviceInput.value === 'Deep Cleaning') extractedPrice = 90;
+    else if (serviceInput.value === 'Garbage Pickup') extractedPrice = 25;
+
     const currentUser = localStorage.getItem('cleano_customer_name') || 'Guest';
 
-    // تجهيز الطلب
     const orderData = {
         customer: currentUser,
         service: serviceInput.options[serviceInput.selectedIndex].text, 
         address: addressInput.value,
+        price: extractedPrice, // <-- هنا السحر! بعتنا السعر كرقم
         status: 'pending'
     };
 
@@ -105,33 +105,14 @@ document.getElementById('submit-request-btn').addEventListener('click', async ()
         });
 
         if (response.ok) {
-            alert('Order placed successfully! A trusted worker will be assigned soon.');
-            
-            // تفريغ حقل العنوان بعد ما الطلب يتبعت
+            alert('Order placed successfully!');
             addressInput.value = '';
-            
-            // تحديث جدول الطلبات في نفس الصفحة لو الدالة دي موجودة
-            if (typeof fetchUserOrders === 'function') {
-                fetchUserOrders();
-            }
-        } else {
-             console.error('Server error:', await response.text());
+            if (typeof fetchUserOrders === 'function') fetchUserOrders();
         }
     } catch (error) {
-        console.error('Error adding order:', error);
+        console.error('Error:', error);
     }
 });
-
-async function cancelOrder(id) {
-    if(confirm('Are you sure you want to cancel this order?')) {
-        try {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            fetchMyOrders(); 
-        } catch (error) {
-            console.error('Error canceling order:', error);
-        }
-    }
-}
 
 // ==========================================
 // 3. البروفايل والقائمة المنسدلة
